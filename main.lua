@@ -1,33 +1,38 @@
 function love.load()
-  buttons = {} 
-  buttons[1] = {50,810, 65, 65, "play"}
-  buttons[2] = {150, 810, 65,65, "pause"}
-  buttons[3] = {250,830, 30,30,"-"}
-  buttons[4] = {330, 830,30,30,"+"}
-  buttons[5] = {410, 820,40,40,"small"}
-  buttons[6] = {480, 820,40,40,"mid"}
-  buttons[7] = {550, 820,40,40,"large"}
+ 
   
   Canvas = {
-    mapSize = 60,
+    mapSize = 40,
     mapDimensions = 800,
     map = {},
-	button = buttons,
-	play = false,
-	playSpeed = 5,
-	endCheck = {},
-	timeCounter = 0,
-	speeds = {60,30,20,15,12,10,6,5,4,3,2,1}
+  button = addButtons(),
+  play = false,
+  playSpeed = 5,
+  timeCounter = 0,
+  speeds = {60,30,20,15,12,10,6,5,4,3,2,1},
+  showHelp = false
   }
   
-  time = love.timer.getTime();
+  love.window.setTitle( "Conway's Game of Life" )
   -- Initial map size set to 20x20
   Canvas.map = initialiseMap(Canvas.mapSize)
   Canvas.endCheck = Canvas.map
   love.window.setMode(Canvas.mapDimensions,Canvas.mapDimensions + 100)
-  love.graphics.setBackgroundColor(0.9,0.9,0.9,1.0)
+  love.graphics.setBackgroundColor(1.0,1.0,1.0,1.0)
 end
-
+function addButtons()
+  buttons = {} 
+  buttons[1] = {50,810, 65, 65, "Play"}
+  buttons[2] = {150, 810, 65,65, "Pause"}
+  buttons[3] = {250,830, 30,30,"-"}
+  buttons[4] = {330, 830,30,30,"+"}
+  buttons[5] = {410, 810,40,40,"Small"}
+  buttons[6] = {470, 810,40,40,"Mid"}
+  buttons[7] = {530, 810,40,40,"Large"}
+  buttons[8] = {620, 810,65,65,"Clear"}
+  buttons[9] = {720, 830,30,30, "Help"}
+  return buttons
+ end
 function initialiseMap (mapSize)
   -- Sets the tables for the map:
   --(mapSize) tables filled with (mapSize) numbers
@@ -49,7 +54,7 @@ end
 
 function drawGrid ()
   -- Sets color to black
-  love.graphics.setColor(0.0,0.0,0.0,1.0)
+  love.graphics.setColor(0.02,0.2,0.2,1.0)
   -- Draws border around the grid area
   love.graphics.rectangle("line", 0,0, Canvas.mapDimensions, Canvas.mapDimensions)
   
@@ -66,52 +71,71 @@ end
 
 function love.mousepressed (x, y, button)
 
-	if y<= Canvas.mapDimensions then
-		changeTile(x,y)
-	else
-		clickButton(x,y)
-	end
-	 
+  if y<= Canvas.mapDimensions then
+    changeTile(x,y)
+  else
+    clickButton(x,y)
+  end
+   
 end
 
 function clickButton(x,y)
-	action = "none"
+  -- Stores the string value stored at the end of each button array
+  action = "none"
+  -- Checks coordinates of mouse click to determine which buttons has been pressed
+  for i=1, table.getn(Canvas.button) do
+    b = Canvas.button[i]
+    if (x >= b[1]) and (x < (b[1] + b[3])) then
+      if (y>=b[2]) and (y<= b[2] + b[4]) then
+	  -- Sets the action string to the corresponding button
+        action= b[5]
+      end
+    end
+  end
+  -- Handles the Play on/off 
+  if action == "Play" then
+    Canvas.play = true
+  elseif action == "Pause" then
+    Canvas.play = false
 	
-	for i=1, table.getn(Canvas.button) do
-		b = Canvas.button[i]
-		if (x >= b[1]) and (x < (b[1] + b[3])) then
-			if (y>=b[2]) and (y<= b[2] + b[4]) then
-				action= b[5]
-				
-			end
-		end
-	end
-	if action == "play" then
-		Canvas.play = true
-	elseif action == "pause" then
-		Canvas.play = false
-	elseif action == "-" then
-		if Canvas.playSpeed >1 then
-			Canvas.playSpeed = Canvas.playSpeed-1
-			
-		end
-	elseif action == "+" then
-		if Canvas.playSpeed <table.getn(Canvas.speeds) then
-			Canvas.playSpeed = Canvas.playSpeed +1
-		end
-	end
-	if (action == "small") and (Canvas.mapSize ~= 20) then
-		Canvas.map = initialiseMap(20)
-		Canvas.mapSize = 20
-	end
-	if action == "mid" and Canvas.mapSize ~= 40 then
-		Canvas.map = initialiseMap(40)
-		Canvas.mapSize = 40
-	end
-	if action == "large" and Canvas.mapSize ~= 60 then
-		Canvas.map = initialiseMap(60)
-		Canvas.mapSize = 60
-	end
+	
+  -- Handles the increment or decrement to the PlaySpeed button 
+  elseif action == "-" then
+    if Canvas.playSpeed >1 then
+      Canvas.playSpeed = Canvas.playSpeed-1
+    end
+  elseif action == "+" then
+    if Canvas.playSpeed <table.getn(Canvas.speeds) then
+      Canvas.playSpeed = Canvas.playSpeed +1
+    end
+  end
+  
+  -- Handles the change in map size 
+  if (action == "Small") and (Canvas.mapSize ~= 20) then
+    Canvas.map = initialiseMap(20)
+    Canvas.mapSize = 20
+    Canvas.play = false
+
+  end
+  if action == "Mid" and Canvas.mapSize ~= 40 then
+    Canvas.map = initialiseMap(40)
+    Canvas.mapSize = 40
+    Canvas.play = false
+  end
+  if action == "Large" and Canvas.mapSize ~= 60 then
+    Canvas.map = initialiseMap(60)
+    Canvas.mapSize = 60
+    Canvas.play = false
+  end
+  -- Clears map by re-intialising map to same size
+  if action == "Clear" then
+    Canvas.map = initialiseMap(Canvas.mapSize)
+    Canvas.play = false
+  end
+  -- Toggles help on and off
+  if action == "Help" then
+    Canvas.showHelp = not(Canvas.showHelp)
+  end
 end
 function changeTile (x,y)
   interval = 800/Canvas.mapSize
@@ -181,32 +205,39 @@ function checkState ()
   end
 end
 
-function love.update ()
-  
-end
 
+-- Allows the user to perform a single iteration by pressing space
 function love.keypressed (key)
   if key == "space" then
     checkState()
   end
 end
--- Triggers an iteration of the algorithm when the spacebar is pressed
+
+-- Writes instructions on toggles help window to aid user
+function showHelp()
+  love.graphics.setColor(1.0,1.0,1.0,1.0)
+  love.graphics.rectangle("fill", 600,600,200,200)
+  love.graphics.setColor(0.0,0.0,0.0,1.0)
+  love.graphics.print("SPACE to update once \n\nPLAY to auto-update\n\nPLAY SPEED affects rate \nof auto-update\n\nGRID SIZE affects the number \nof tiles\n\nCLEAR empties all tiles",605,605)
+
+end
+
 function love.draw()
+  -- Allows count to increment up to default FPS of 60
   Canvas.timeCounter = (Canvas.timeCounter +1)%60
+  -- if the count reaches a multiple of 60/playSpeed, the auto-update runs
   if Canvas.play == true and Canvas.timeCounter%Canvas.speeds[Canvas.playSpeed] == 0 then
-	checkState()
+    checkState()
   end
-  love.graphics.print(Canvas.timeCounter.."   " ..((60/Canvas.playSpeed) - (60/Canvas.playSpeed%1)) , 300,300)
-  -- draw map
   -- size of each tile is calculated by dividing the width of the grid by number of tiles
   interval = Canvas.mapDimensions/Canvas.mapSize
-
+  -- Iterates through all tiles
   for i=1, Canvas.mapSize do
     for y=1, Canvas.mapSize do
       -- If a tile is alive, then
       if Canvas.map[i][y] == 1 then
         -- Live tile colour is set
-        love.graphics.setColor(0.3,0.5,0.5,0.9)
+        love.graphics.setColor(0.0,0.0,0.0,1.0)
         -- i and y have 1 subtracted to offset coordinates and Lua table 1-indexing differences
         love.graphics.rectangle("fill", ((i-1)*interval) , ((y-1)*interval), interval,interval)
       end
@@ -215,16 +246,33 @@ function love.draw()
   -- Draw the gridlines and the menu
   drawMenu()
   drawGrid()
+  --iterates through the buttons, draws them and the string describing their function
   for i=1,table.getn(Canvas.button) do
-	b = Canvas.button[i]
-	love.graphics.rectangle("fill", b[1],b[2],b[3],b[4])
-	love.graphics.print(b[5], (b[1] +10), (b[2] + b[3] ))
+    b = Canvas.button[i]
+    love.graphics.rectangle("fill", b[1],b[2],b[3],b[4])
+    love.graphics.print(b[5], (b[1]+2), (b[2] + b[3] ))
  end
- love.graphics.print(Canvas.playSpeed, 298, 840)
- if Canvas.play == true then
-	love.graphics.setColor(0.0,1.0,0.0,0.3)
-		
-	love.graphics.rectangle("fill", 50,810,65,65)
- end
+ 
+  -- Draws additional labels encompassing sets of buttons
+  love.graphics.print(Canvas.playSpeed, 300,840)
   love.graphics.setColor(0.0,0.0,0.0,1.0)
+  love.graphics.print("Play speed", 274,875)
+  love.graphics.print("Grid size", 467,875)
+  
+  -- Uses calculation involving the grid dimensions (20,40,60) to highlight current grid dimensions
+  love.graphics.setColor(0.0,1.0,0.0,0.3)
+  love.graphics.rectangle("fill", 350+(Canvas.mapSize*3), 810,40,40)
+  love.graphics.setColor(1.0,1.0,1.0,0.6)
+  
+  -- Overlays grey cover on buttons to indicate there is no reason for them to be pressed
+  if Canvas.play == true then
+    love.graphics.rectangle("fill", 50,810,65,65)
+  else
+    love.graphics.rectangle("fill", 150,810,65,65)
+  end
+  
+  -- When the user toggles help then the corresponding function is called
+  if Canvas.showHelp == true then
+    showHelp()
+  end
 end
