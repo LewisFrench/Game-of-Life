@@ -1,25 +1,26 @@
 function love.load()
- 
-  
   Canvas = {
     mapSize = 40,
     mapDimensions = 800,
     map = {},
-  button = addButtons(),
-  play = false,
-  playSpeed = 5,
-  timeCounter = 0,
-  speeds = {60,30,20,15,12,10,6,5,4,3,2,1},
-  showHelp = false
+    button = addButtons(),
+    play = false,
+    playSpeed = 5,
+    timeCounter = 0,
+    speeds = {60,30,20,15,12,10,6,5,4,3,2,1},
+    showHelp = false
   }
-  
+  -- Set window title
   love.window.setTitle( "Conway's Game of Life" )
-  -- Initial map size set to 20x20
+  
+  -- Blank map is set to mapSize
   Canvas.map = initialiseMap(Canvas.mapSize)
-  Canvas.endCheck = Canvas.map
+  -- Creates window to gridsize + 100 for the menu
   love.window.setMode(Canvas.mapDimensions,Canvas.mapDimensions + 100)
   love.graphics.setBackgroundColor(1.0,1.0,1.0,1.0)
 end
+
+-- Readability for adding the buttons to the Canvas 
 function addButtons()
   buttons = {} 
   buttons[1] = {50,810, 65, 65, "Play"}
@@ -33,7 +34,8 @@ function addButtons()
   buttons[9] = {720, 830,30,30, "Help"}
   return buttons
  end
-function initialiseMap (mapSize)
+
+ function initialiseMap (mapSize)
   -- Sets the tables for the map:
   --(mapSize) tables filled with (mapSize) numbers
   map = {}
@@ -68,12 +70,13 @@ function drawGrid ()
   end
   
 end
-
+-- Determines the actions necessary when mouse is clicked
 function love.mousepressed (x, y, button)
-
+  -- If the user clicks in the grid, then the tiles are affected
   if y<= Canvas.mapDimensions then
     changeTile(x,y)
   else
+    -- Otherwise, the user is looking to interact with the menu
     clickButton(x,y)
   end
    
@@ -92,12 +95,12 @@ function clickButton(x,y)
       end
     end
   end
+  
   -- Handles the Play on/off 
   if action == "Play" then
     Canvas.play = true
   elseif action == "Pause" then
     Canvas.play = false
-	
 	
   -- Handles the increment or decrement to the PlaySpeed button 
   elseif action == "-" then
@@ -115,7 +118,6 @@ function clickButton(x,y)
     Canvas.map = initialiseMap(20)
     Canvas.mapSize = 20
     Canvas.play = false
-
   end
   if action == "Mid" and Canvas.mapSize ~= 40 then
     Canvas.map = initialiseMap(40)
@@ -127,11 +129,13 @@ function clickButton(x,y)
     Canvas.mapSize = 60
     Canvas.play = false
   end
+  
   -- Clears map by re-intialising map to same size
   if action == "Clear" then
     Canvas.map = initialiseMap(Canvas.mapSize)
     Canvas.play = false
   end
+  
   -- Toggles help on and off
   if action == "Help" then
     Canvas.showHelp = not(Canvas.showHelp)
@@ -229,6 +233,7 @@ function love.draw()
   if Canvas.play == true and Canvas.timeCounter%Canvas.speeds[Canvas.playSpeed] == 0 then
     checkState()
   end
+  
   -- size of each tile is calculated by dividing the width of the grid by number of tiles
   interval = Canvas.mapDimensions/Canvas.mapSize
   -- Iterates through all tiles
@@ -243,9 +248,11 @@ function love.draw()
       end
     end
   end
+  
   -- Draw the gridlines and the menu
   drawMenu()
   drawGrid()
+  
   --iterates through the buttons, draws them and the string describing their function
   for i=1,table.getn(Canvas.button) do
     b = Canvas.button[i]
