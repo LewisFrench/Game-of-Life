@@ -16,7 +16,8 @@ function love.load()
 	play = false,
 	playSpeed = 5,
 	endCheck = {},
-	timeCounter = 0
+	timeCounter = 0,
+	speeds = {60,30,20,15,12,10,6,5,4,3,2,1}
   }
   
   time = love.timer.getTime();
@@ -92,9 +93,10 @@ function clickButton(x,y)
 	elseif action == "-" then
 		if Canvas.playSpeed >1 then
 			Canvas.playSpeed = Canvas.playSpeed-1
+			
 		end
 	elseif action == "+" then
-		if Canvas.playSpeed <50 then
+		if Canvas.playSpeed <table.getn(Canvas.speeds) then
 			Canvas.playSpeed = Canvas.playSpeed +1
 		end
 	end
@@ -191,7 +193,7 @@ end
 -- Triggers an iteration of the algorithm when the spacebar is pressed
 function love.draw()
   Canvas.timeCounter = (Canvas.timeCounter +1)%60
-  if (Canvas.timeCounter %((60/Canvas.playSpeed) - (Canvas.playSpeed%1))==0) and Canvas.play == true  then
+  if Canvas.play == true and Canvas.timeCounter%Canvas.speeds[Canvas.playSpeed] == 0 then
 	checkState()
   end
   love.graphics.print(Canvas.timeCounter.."   " ..((60/Canvas.playSpeed) - (60/Canvas.playSpeed%1)) , 300,300)
